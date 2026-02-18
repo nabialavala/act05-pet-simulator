@@ -59,6 +59,28 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
     }
   }
 
+//part 1 - pet mood indicator
+  String _moodText() {
+    if (happinessLevel > 70) {
+      return "Happy";
+    } else if (happinessLevel >= 30) {
+      return "Neutral";
+    } else {
+      return "Sad";
+    }
+  }
+
+  IconData _moodIcon() {
+    if (happinessLevel > 70) {
+      return Icons.sentiment_satisfied_alt;
+    } else if (happinessLevel >= 30) {
+      return Icons.sentiment_neutral;
+    } else {
+      return Icons.sentiment_dissatisfied;
+    }
+  }
+  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,6 +103,23 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
                 'assets/pet_image.png',
                 height: 150,
               ),
+            ),
+            SizedBox(height: 16.0),
+            //part 1 - pet mood indicator
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _moodText(),
+                  style: TextStyle(fontSize: 20.0),
+                ), 
+                SizedBox(width:8.0),
+                Icon(
+                  _moodIcon(),
+                  size: 24.0,
+                  color: _moodColor(happinessLevel),
+                ),
+              ],
             ),
             SizedBox(height: 16.0),
             Text('Happiness Level: $happinessLevel', style: TextStyle(fontSize: 20.0)),
