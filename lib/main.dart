@@ -25,6 +25,8 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
   int _happySeconds = 0;
   Timer? _winTimer;
   bool _gameOver = false;
+  //part 2 - energy bar widget: adding new state variable
+  double energyLevel = 100.0;
 
   void _playWithPet() {
     setState(() {
@@ -197,83 +199,99 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
       appBar: AppBar(
         title: Text('Digital Pet'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            //part 1 - pet name customization adding user input field
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: "Enter pet name",
-                  border: OutlineInputBorder(),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              //part 1 - pet name customization adding user input field
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: "Enter pet name",
+                    border: OutlineInputBorder(),
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  final newName = _nameController.text.trim();
-                  if (newName.isNotEmpty) {
-                    petName = newName;
-                    _nameController.clear();
-                  }
-                  //part 1 - win/loss conditions: check after each setState() method
-                  _checkLossCondition();
-                  _checkWinCondition();
-                });
-              },
-              child: Text("Set Name"),
-            ),
-            SizedBox(height: 16.0),
-            Text('Name: $petName', style: TextStyle(fontSize: 20.0)),
-            SizedBox(height: 16.0),
-            //part 1 - dynamic color change: adding pet image
-            ColorFiltered(
-              colorFilter: ColorFilter.mode(
-                _moodColor(happinessLevel),
-                BlendMode.modulate,
+              SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    final newName = _nameController.text.trim();
+                    if (newName.isNotEmpty) {
+                      petName = newName;
+                      _nameController.clear();
+                    }
+                    //part 1 - win/loss conditions: check after each setState() method
+                    _checkLossCondition();
+                    _checkWinCondition();
+                  });
+                },
+                child: Text("Set Name"),
               ),
-              child: Image.asset(
-                'assets/pet_image.png',
-                height: 150,
-              ),
-            ),
-            SizedBox(height: 16.0),
-            //part 1 - pet mood indicator
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _moodText(),
-                  style: TextStyle(fontSize: 20.0),
-                ), 
-                SizedBox(width:8.0),
-                Icon(
-                  _moodIcon(),
-                  size: 24.0,
-                  color: _moodColor(happinessLevel),
+              SizedBox(height: 16.0),
+              Text('Name: $petName', style: TextStyle(fontSize: 20.0)),
+              SizedBox(height: 16.0),
+              //part 1 - dynamic color change: adding pet image
+              ColorFiltered(
+                colorFilter: ColorFilter.mode(
+                  _moodColor(happinessLevel),
+                  BlendMode.modulate,
                 ),
-              ],
-            ),
-            SizedBox(height: 16.0),
-            Text('Happiness Level: $happinessLevel', style: TextStyle(fontSize: 20.0)),
-            SizedBox(height: 16.0),
-            Text('Hunger Level: $hungerLevel', style: TextStyle(fontSize: 20.0)),
-            SizedBox(height: 32.0),
-            ElevatedButton(
-              onPressed: _playWithPet,
-              child: Text('Play with Your Pet'),
-            ),
-            SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: _feedPet,
-              child: Text('Feed Your Pet'),
-            ),
-          ],
+                child: Image.asset(
+                  'assets/pet_image.png',
+                  height: 150,
+                ),
+              ),
+              SizedBox(height: 16.0),
+              //part 1 - pet mood indicator
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _moodText(),
+                    style: TextStyle(fontSize: 20.0),
+                  ), 
+                  SizedBox(width:8.0),
+                  Icon(
+                    _moodIcon(),
+                    size: 24.0,
+                    color: _moodColor(happinessLevel),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16.0),
+              Text('Happiness Level: $happinessLevel', style: TextStyle(fontSize: 20.0)),
+              SizedBox(height: 16.0),
+              Text('Hunger Level: $hungerLevel', style: TextStyle(fontSize: 20.0)),
+              SizedBox(height: 16.0),
+              //part 2 - energy level bar: adding to page
+              Text(
+                "Energy Level: ${energyLevel.toStringAsFixed(0)}",
+                style: TextStyle(fontSize: 20.0),
+              ),
+              SizedBox(height: 8.0),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                child: LinearProgressIndicator(
+                  value: energyLevel/100, //value has to be between 0-1
+                  minHeight: 10,
+                ),
+              ),
+              SizedBox(height: 32.0),
+              ElevatedButton(
+                onPressed: _playWithPet,
+                child: Text('Play with Your Pet'),
+              ),
+              SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: _feedPet,
+                child: Text('Feed Your Pet'),
+              ),
+            ],
+          ),
         ),
       ),
     );
