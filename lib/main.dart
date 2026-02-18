@@ -27,11 +27,18 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
   bool _gameOver = false;
   //part 2 - energy bar widget: adding new state variable
   double energyLevel = 100.0;
+  //part 2 - energy level logic: adding boolean check
+  bool get _tooTired => energyLevel <=10;
+
 
   void _playWithPet() {
     setState(() {
       happinessLevel += 10.0;
+      //part 2 - energy level logic: bc playing costs energy
+      energyLevel -= 15.0;
       _updateHunger();
+      //part 2 - energy level logic: make sure levels stay 0-100
+      _clampStats();
       //part 1 - win/loss conditions: check after each setState() method
       _checkLossCondition();
       _checkWinCondition(); 
@@ -41,6 +48,8 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
   void _feedPet() {
     setState(() {
       hungerLevel -= 10.0;
+      //part 2 - energy level logic: bc food gives energy
+      energyLevel +=5.0;
       _updateHappiness();
       //part 1 - win/loss conditions: check after each setState() method
       _checkLossCondition();
@@ -193,6 +202,16 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
     }
   }
 
+  //part 2 - energy level logic: helper method
+  void _clampStats() {
+    if (energyLevel < 0) energyLevel = 0;
+    if (energyLevel > 100) energyLevel = 100;
+    if (happinessLevel < 0) happinessLevel = 0;
+    if (happinessLevel > 100) happinessLevel = 0;
+    if (hungerLevel < 0) hungerLevel = 0;
+    if (hungerLevel > 100) hungerLevel = 100;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -267,7 +286,7 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
               SizedBox(height: 16.0),
               Text('Hunger Level: $hungerLevel', style: TextStyle(fontSize: 20.0)),
               SizedBox(height: 16.0),
-              //part 2 - energy level bar: adding to page
+              //part 2 - energy bar widget: adding to page
               Text(
                 "Energy Level: ${energyLevel.toStringAsFixed(0)}",
                 style: TextStyle(fontSize: 20.0),
@@ -282,13 +301,13 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
               ),
               SizedBox(height: 32.0),
               ElevatedButton(
-                onPressed: _playWithPet,
-                child: Text('Play with Your Pet'),
+                onPressed: _tooTired ? null : _playWithPet,
+                child: Text(_tooTired ? 'Too tired to play' : 'Play'),
               ),
               SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: _feedPet,
-                child: Text('Feed Your Pet'),
+                child: Text('Feed'),
               ),
             ],
           ),
