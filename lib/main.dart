@@ -15,6 +15,8 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
   String petName = "Your Pet";
   int happinessLevel = 50;
   int hungerLevel = 50;
+  //part 1 - Pet Name Customization: initaializing pet name variable
+  final TextEditingController _nameController = TextEditingController();
 
   void _playWithPet() {
     setState(() {
@@ -79,6 +81,13 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
       return Icons.sentiment_dissatisfied;
     }
   }
+
+  //part 1 - pet name cutomization: creation method to dispose
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
   
 
   @override
@@ -91,6 +100,31 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            //part 1 - pet name customization adding user input field
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: TextField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: "Enter pet name",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  final newName = _nameController.text.trim();
+                  if (newName.isNotEmpty) {
+                    petName = newName;
+                    _nameController.clear();
+                  }
+                });
+              },
+              child: Text("Set Name"),
+            ),
+            SizedBox(height: 16.0),
             Text('Name: $petName', style: TextStyle(fontSize: 20.0)),
             SizedBox(height: 16.0),
             //part 1 - dynamic color change
