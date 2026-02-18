@@ -21,11 +21,18 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
   final TextEditingController _nameController = TextEditingController();
   //part 1- auto-increasing hunger: creating timer variable
   Timer? _hungerTimer; //'Timer?' - ? makes the variable able to be assigned null value
+  //part 1 - win/loss conditions: add variables to track
+  int _happySeconds = 0;
+  Timer? _winTimer;
+  bool _gameOver = false;
 
   void _playWithPet() {
     setState(() {
       happinessLevel += 10.0;
       _updateHunger();
+      //part 1 - win/loss conditions: check after each setState() method
+      _checkLossCondition();
+      _checkWinCondition(); 
     });
   }
 
@@ -33,6 +40,9 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
     setState(() {
       hungerLevel -= 10.0;
       _updateHappiness();
+      //part 1 - win/loss conditions: check after each setState() method
+      _checkLossCondition();
+      _checkWinCondition(); 
     });
   }
 
@@ -45,13 +55,11 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
   }
 
   void _updateHunger() {
-    setState(() {
-      hungerLevel += 5.0;
-      if (hungerLevel > 100.0) {
-        hungerLevel = 100.0;
-        happinessLevel -= 20.0;
-      }
-    });
+    hungerLevel += 5.0;
+    if (hungerLevel > 100.0) {
+      hungerLevel = 100.0;
+      happinessLevel -= 20.0;
+    } 
   }
 
 //part 1 - dynamic color change
@@ -91,6 +99,7 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
   void dispose() {
     //part 1 - auto-inc hunger: we need to cancel the timer
     _hungerTimer?.cancel();
+    _winTimer?.cancel();
     _nameController.dispose();
     super.dispose();
   }
@@ -107,11 +116,80 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
           if (hungerLevel > 100.0) {
             hungerLevel = 100.0;
           }
+        //part 1 - win/loss conditions: check after each setState() method
+        _checkLossCondition();
+        _checkWinCondition(); 
         });
       },
     );
   }
+
+  //part 1 - win/loss conditions: method to check loss conditions
+  void _checkLossCondition() {
+    if (_gameOver) return;
+    if (hungerLevel >= 100.0 && happinessLevel <= 10.0) {
+      _gameOver = true;
+      _hungerTimer?.cancel();
+      _winTimer?.cancel();
+      _winTimer = null;
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("Game Over"),
+          content: Text("$petName died from starvation and depression."),
+          actions:[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("OK"),
+            ),
+          ],
+        ),
+      );
+    }
+  }
   
+  //part 1 - win/loss conditions: method to check win conditions
+  void _checkWinCondition() {
+    if (_gameOver) return;
+    if (happinessLevel> 80.0) {
+      if (_winTimer == null) {
+        _winTimer = Timer.periodic(
+          Duration(seconds: 1),
+          (timer) {
+            _happySeconds++;
+            if (_happySeconds >= 180) {
+              _gameOver = true;
+              timer.cancel();
+              _winTimer?.cancel();
+              _winTimer = null;
+              _hungerTimer?.cancel();
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text("You Win!!"),
+                  content: Text("$petName is extremely happy!"),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text("Yay!"),
+                    ),
+                  ],
+                ),
+              );
+            }
+          },
+        );
+      }
+    } else {
+      _winTimer?.cancel();
+      _winTimer = null;
+      _happySeconds = 0;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,6 +221,9 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
                     petName = newName;
                     _nameController.clear();
                   }
+                  //part 1 - win/loss conditions: check after each setState() method
+                  _checkLossCondition();
+                  _checkWinCondition();
                 });
               },
               child: Text("Set Name"),
