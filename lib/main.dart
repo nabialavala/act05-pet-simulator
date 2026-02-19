@@ -32,45 +32,54 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
 
 
   void _playWithPet() {
+    if (_gameOver) return;
     setState(() {
       happinessLevel += 10.0;
       //part 2 - energy level logic: bc playing costs energy
       energyLevel -= 15.0;
-      _updateHunger();
-      //part 2 - energy level logic: make sure levels stay 0-100
-      _clampStats();
-      //part 1 - win/loss conditions: check after each setState() method
-      _checkLossCondition();
-      _checkWinCondition(); 
     });
+    _updateHunger();
+    //part 1 - win/loss conditions: check after each setState() method
+    _checkLossCondition();
+    _checkWinCondition(); 
   }
 
   void _feedPet() {
+    if (_gameOver) return;
     setState(() {
       hungerLevel -= 10.0;
       //part 2 - energy level logic: bc food gives energy
       energyLevel +=5.0;
       _updateHappiness();
       //part 1 - win/loss conditions: check after each setState() method
+      _clampStats();
       _checkLossCondition();
       _checkWinCondition(); 
     });
   }
 
   void _updateHappiness() {
-    if (hungerLevel < 30.0) {
-      happinessLevel -= 20.0;
+    if (hungerLevel > 70.0) {
+      //personal edit: if pet is super hungry decrease happiness
+      happinessLevel -= 20.0; 
+    } else if (hungerLevel > 30.0) {
+      //personal edit: if pet moderately hungry
+      happinessLevel += 5.0;
     } else {
+      //personal edit: if pet is well fed
       happinessLevel += 10.0;
     }
+    _clampStats();
   }
 
   void _updateHunger() {
-    hungerLevel += 5.0;
-    if (hungerLevel > 100.0) {
-      hungerLevel = 100.0;
-      happinessLevel -= 20.0;
-    } 
+    setState(() {
+      hungerLevel += 5.0;
+      if (hungerLevel > 100.0) {
+        hungerLevel = 100.0;
+      }
+      _clampStats();
+    });
   }
 
 //part 1 - dynamic color change
@@ -121,15 +130,18 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
     super.initState();
     _hungerTimer = Timer.periodic(
       Duration(seconds: 30),
-      (timer) {
+      (Timer timer) {
         setState(() {
+          if (_gameOver) return;
           hungerLevel += 5.0;
-          if (hungerLevel > 100.0) {
-            hungerLevel = 100.0;
+          //personal edit: hunger will automatically affect happiness
+          if (hungerLevel >= 90) {
+            happinessLevel -= 10.0;
           }
-        //part 1 - win/loss conditions: check after each setState() method
-        _checkLossCondition();
-        _checkWinCondition(); 
+          _clampStats();
+          //part 1 - win/loss conditions: check after each setState() method
+          _checkLossCondition();
+          _checkWinCondition(); 
         });
       },
     );
@@ -165,90 +177,104 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
   void _checkWinCondition() {
     if (_gameOver) return;
     if (happinessLevel> 80.0) {
-      if (_winTimer == null) {
-        _winTimer = Timer.periodic(
-          Duration(seconds: 1),
-          (timer) {
-            _happySeconds++;
-            if (_happySeconds >= 180) {
-              _gameOver = true;
-              timer.cancel();
-              _winTimer?.cancel();
-              _winTimer = null;
-              _hungerTimer?.cancel();
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text("You Win!!"),
-                  content: Text("$petName is extremely happy!"),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text("Yay!"),
-                    ),
-                  ],
-                ),
-              );
-            }
-          },
-        );
-      }
+      _winTimer ??= Timer.periodic(
+        Duration(seconds: 1),
+        (Timer timer) {
+          _happySeconds++;
+          if (_happySeconds >= 180) {
+            _gameOver = true;
+            timer.cancel();
+            _winTimer?.cancel();
+            _winTimer = null;
+            _hungerTimer?.cancel();
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text("You Win!!"),
+                content: Text("$petName is extremely happy!"),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text("Yay!"),
+                  ),
+                ],
+              ),
+            );
+          }
+        },
+      );
     } else {
       _winTimer?.cancel();
       _winTimer = null;
       _happySeconds = 0;
     }
-  }
+  } 
+  
 
   //part 2 - energy level logic: helper method
   void _clampStats() {
     if (energyLevel < 0) energyLevel = 0;
     if (energyLevel > 100) energyLevel = 100;
     if (happinessLevel < 0) happinessLevel = 0;
-    if (happinessLevel > 100) happinessLevel = 0;
+    if (happinessLevel > 100) happinessLevel = 100;
     if (hungerLevel < 0) hungerLevel = 0;
     if (hungerLevel > 100) hungerLevel = 100;
+  }
+
+  //personal edit: helper to change energy bar color
+  Color _energyColor() {
+    if (energyLevel > 50) return Colors.green;
+    if (energyLevel > 25) return Colors.orange;
+    return Colors.red;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Digital Pet'),
+        title: Text('Welcome to Nabia\'s Digital Pet Simulator'),
       ),
       body: SingleChildScrollView(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              //part 1 - pet name customization adding user input field
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: TextField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: "Enter pet name",
-                    border: OutlineInputBorder(),
+              //personal edit: setting input box and set button side by side
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    //part 1 - pet name customization adding user input field
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: TextField(
+                        controller: _nameController,
+                        decoration: InputDecoration(
+                          labelText: "Enter pet name",
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    final newName = _nameController.text.trim();
-                    if (newName.isNotEmpty) {
-                      petName = newName;
-                      _nameController.clear();
-                    }
-                    //part 1 - win/loss conditions: check after each setState() method
-                    _checkLossCondition();
-                    _checkWinCondition();
-                  });
-                },
-                child: Text("Set Name"),
+                  const SizedBox(width: 10.0),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        final newName = _nameController.text.trim();
+                        if (newName.isNotEmpty) {
+                          petName = newName;
+                          _nameController.clear();
+                        }
+                        //part 1 - win/loss conditions: check after each setState() method
+                        _checkLossCondition();
+                        _checkWinCondition();
+                      });
+                    },
+                    child: Text("Set Name"),
+                  ),
+                ],
               ),
               SizedBox(height: 16.0),
               Text('Name: $petName', style: TextStyle(fontSize: 20.0)),
@@ -297,6 +323,7 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
                 child: LinearProgressIndicator(
                   value: energyLevel/100, //value has to be between 0-1
                   minHeight: 10,
+                  valueColor: AlwaysStoppedAnimation(_energyColor()),
                 ),
               ),
               SizedBox(height: 32.0),
